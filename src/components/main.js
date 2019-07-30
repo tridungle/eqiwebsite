@@ -10,11 +10,15 @@ export default class Main extends Component {
     super(props);
     this.state = {
       status: undefined,
-      loader: undefined
+      loader: undefined,
+      selectedCityTitle: "Predicamentor",
+      newCity: undefined
     };
     this.changeStatus = this.changeStatus.bind(this);
     this.changeLoader = this.changeLoader.bind(this);
     this.changeStatusAndLoader = this.changeStatusAndLoader.bind(this);
+    this.changeSelectedCityTitle = this.changeSelectedCityTitle.bind(this);
+    this.changeNewCity = this.changeNewCity.bind(this);
   }
   changeStatus(status) {
     this.setState({ status: status });
@@ -25,6 +29,12 @@ export default class Main extends Component {
   changeStatusAndLoader(status, loader) {
     this.setState({ status: status, loader: loader });
   }
+  changeSelectedCityTitle(city) {
+    this.setState({ selectedCityTitle: city });
+  }
+  changeNewCity(city) {
+    this.setState({ newCity: city });
+  }
   render() {
     return (
       <div>
@@ -33,6 +43,7 @@ export default class Main extends Component {
             <Topbar
               changeStatusAndLoader={this.changeStatusAndLoader}
               opacity={1}
+              selectedCityTitle={this.state.selectedCityTitle}
             />
           </FadeIn>
         ) : (
@@ -46,7 +57,11 @@ export default class Main extends Component {
             changeLoader={this.changeLoader}
           />
         ) : (
-          <Predicamentor />
+          <Predicamentor
+            changeSelectedCityTitle={this.changeSelectedCityTitle}
+            changeNewCity={this.changeNewCity}
+            newCity={this.state.newCity}
+          />
         )}
       </div>
     );

@@ -4,8 +4,7 @@ import {
   withScriptjs,
   withGoogleMap,
   GoogleMap,
-  Marker,
-  Polygon
+  Marker
 } from "react-google-maps";
 import Modal from "react-modal";
 import FadeIn from "react-fade-in";
@@ -35,20 +34,43 @@ const customStyles = {
     bottom: "auto",
     marginRight: "-50%",
     transform: "translate(-50%, -50%)",
-    width: "50vw"
+    width: "50vw",
+    maxHeight: "90vh",
+    overflowY: "auto"
   }
 };
 
-var myMarkers = [];
-/*for (var i = 0; i < 100; i++) {
-  myMarkers.push({
-    id: `marker${i}`,
-    lat: 32.0853 + 0.02 * i,
-    lng: 34.7818 + 0.02 * i
-  });
-}*/
+var myMarkersTelAviv = [];
+var myMarkersJerusalem = [];
+var myMarkersHaifa = [];
 
-const refreshDataFromGeoJson = function(currentMap) {
+myMarkersTelAviv.push({
+  city: "Tel Aviv",
+  id: "Tel Aviv 1",
+  lat: 32.0853,
+  lng: 34.7818
+});
+
+myMarkersJerusalem.push({
+  city: "Jerusalem",
+  id: "Tel Aviv 1",
+  lat: 31.7683,
+  lng: 35.2137
+});
+
+myMarkersHaifa.push({
+  city: "Haifa",
+  id: "Tel Aviv 1",
+  lat: 32.794,
+  lng: 34.9896
+});
+
+const refreshDataFromGeoJson = function(
+  currentMap,
+  hoveredCity,
+  selectedCity,
+  changeSelectedCityTitle
+) {
   if (!currentMap) {
     return;
   }
@@ -60,8 +82,46 @@ const refreshDataFromGeoJson = function(currentMap) {
   try {
     tempGeoJsonObj = citiesJson;
 
+    function processPoints(geometry, callback, thisArg) {
+      if (geometry instanceof window.google.maps.LatLng) {
+        callback.call(thisArg, geometry);
+      } else if (geometry instanceof window.google.maps.Data.Point) {
+        callback.call(thisArg, geometry.get());
+      } else {
+        geometry.getArray().forEach(function(g) {
+          processPoints(g, callback, thisArg);
+        });
+      }
+    }
     // Call the addGeoJson from the Data class
     let newFeatures = newData.addGeoJson(tempGeoJsonObj);
+    newData.setStyle({
+      fillColor: "transparent",
+      strokeWeight: 1.5,
+      strokeColor: "#c74740",
+      strokeOpacity: 0.2
+    });
+    newData.addListener("mouseover", function(event) {
+      hoveredCity(event.feature.l.SETL_NAME);
+      newData.overrideStyle(event.feature, {
+        strokeOpacity: 0.8,
+        strokeWeight: 2.5
+      });
+    });
+    newData.addListener("mouseout", function(event) {
+      hoveredCity(undefined);
+      newData.overrideStyle(event.feature, {
+        strokeOpacity: 0.2,
+        strokeWeight: 1.5
+      });
+    });
+    newData.addListener("click", function(event) {
+      selectedCity(event.feature.l.SETL_NAME);
+      changeSelectedCityTitle(event.feature.l.SETL_NAME);
+      var bounds = new window.google.maps.LatLngBounds();
+      processPoints(event.feature.getGeometry(), bounds.extend, bounds);
+      currentMap.fitBounds(bounds);
+    });
   } catch (error) {
     newData.setMap(null);
     return;
@@ -90,9 +150,25 @@ const MyMapComponent = compose(
           const currentMap = refs.map;
           window.googleMapsObject = currentMap.context[MAP];
           //load the GeoJson to the map
-          refreshDataFromGeoJson(currentMap);
+          refreshDataFromGeoJson(
+            currentMap,
+            currentMap.props.hoveredCity,
+            currentMap.props.selectedCity,
+            currentMap.props.changeSelectedCityTitle
+          );
           //set props.currentMap
           this.setState({ currentMap: currentMap });
+        }
+      });
+    },
+    componentWillReceiveProps(newProps) {
+      const refs = { GoogleMap };
+      this.setState({
+        onMapMounted: ref => {
+          refs.map = ref;
+          const currentMap = refs.map;
+          //window.googleMapsObject = currentMap.context[MAP];
+          console.log(currentMap);
         }
       });
     }
@@ -114,6 +190,10 @@ const MyMapComponent = compose(
 )(props => (
   <GoogleMap
     ref={props.onMapWillMount}
+    hoveredCity={props.hoveredCity}
+    selectedCity={props.selectedCity}
+    changeSelectedCityTitle={props.changeSelectedCityTitle}
+    newCity={props.newCity}
     mapTypeId={"terrain"}
     defaultZoom={9}
     defaultCenter={{ lat: 32.0853, lng: 34.7818 }}
@@ -133,6 +213,7 @@ const MyMapComponent = compose(
           center={{ lat: 32.0853, lng: 34.7818 }}
           onClick={props.onMarkerClick}
           radius={100}
+          animation={window.google.maps.Animation.DROP}
         />
       ))}
   </GoogleMap>
@@ -142,13 +223,21 @@ export default class Predicamentor extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isMarkerShown: true,
+      isMarkerShown: false,
       modalIsOpen: true,
-      showModal: false
+      showModal: false,
+      hoveredCity: undefined,
+      selectedCity: undefined,
+      myMarkers: myMarkersTelAviv
     };
     this.openModal = this.openModal.bind(this);
     this.afterOpenModal = this.afterOpenModal.bind(this);
     this.closeModal = this.closeModal.bind(this);
+    this.hoveredCity = this.hoveredCity.bind(this);
+    this.selectedCity = this.selectedCity.bind(this);
+    this.changeSelectedCityTitle = this.changeSelectedCityTitle.bind(this);
+    this.changeNewCity = this.changeNewCity.bind(this);
+    this.hideModal = this.hideModal.bind(this);
   }
   openModal() {
     this.setState({ modalIsOpen: true });
@@ -157,6 +246,14 @@ export default class Predicamentor extends Component {
   afterOpenModal() {
     // references are now sync'd and can be accessed.
     // this.subtitle.style.color = "#f00";
+  }
+
+  hoveredCity(city) {
+    this.setState({ hoveredCity: city });
+  }
+
+  selectedCity(city) {
+    this.setState({ selectedCity: city });
   }
 
   closeModal() {
@@ -177,6 +274,26 @@ export default class Predicamentor extends Component {
     this.setState({ isMarkerShown: false });
     this.delayedShowMarker();
   };
+  changeSelectedCityTitle(city) {
+    this.props.changeSelectedCityTitle(city);
+  }
+  changeNewCity(city) {
+    this.props.changeNewCity(city);
+  }
+
+  hideModal(city) {
+    let myMarkersNew;
+    city === "Tel Aviv"
+      ? (myMarkersNew = myMarkersTelAviv)
+      : city === "Jerusalem"
+      ? (myMarkersNew = myMarkersJerusalem)
+      : (myMarkersNew = myMarkersHaifa);
+    this.setState({
+      modalIsOpen: false,
+      isMarkerShown: true,
+      myMarkers: myMarkersNew
+    });
+  }
 
   render() {
     return (
@@ -184,7 +301,11 @@ export default class Predicamentor extends Component {
         <MyMapComponent
           isMarkerShown={this.state.isMarkerShown}
           onMarkerClick={this.handleMarkerClick}
-          markers={myMarkers}
+          markers={this.state.myMarkers}
+          hoveredCity={this.hoveredCity}
+          selectedCity={this.selectedCity}
+          changeSelectedCityTitle={this.changeSelectedCityTitle}
+          newCity={this.props.newCity}
         />
         {!this.state.modalIsOpen ? (
           <div
@@ -220,9 +341,27 @@ export default class Predicamentor extends Component {
             <FadeIn>
               <div class="text-center">
                 <Lottie options={defaultOptions} width={70} />
-                <AlertBox amount={3} desc={"No Signal"} />
-                <AlertBox amount={5} desc={"Needs Repair"} />
-                <AlertBox amount={10} desc={"Low Battery"} />
+                <AlertBox
+                  changeNewCity={this.changeNewCity}
+                  hideModal={this.hideModal}
+                  amount={3}
+                  city={"Tel Aviv"}
+                  desc={"No Signal"}
+                />
+                <AlertBox
+                  changeNewCity={this.changeNewCity}
+                  hideModal={this.hideModal}
+                  amount={5}
+                  city={"Jerusalem"}
+                  desc={"Needs Repair"}
+                />
+                <AlertBox
+                  changeNewCity={this.changeNewCity}
+                  hideModal={this.hideModal}
+                  amount={1}
+                  city={"Haifa"}
+                  desc={"Low Battery"}
+                />
               </div>
             </FadeIn>
           </Modal>

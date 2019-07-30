@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { FaCaretDown, FaCaretUp } from "react-icons/fa";
 import FadeIn from "react-fade-in";
+import { FaPhoneSlash, FaBatteryQuarter, FaTools } from "react-icons/fa";
 
 export default class AlertBox extends Component {
   constructor(props) {
@@ -12,7 +13,58 @@ export default class AlertBox extends Component {
   render() {
     var myElements = [];
     for (var i = 0; i < this.props.amount; i++) {
-      myElements.push(<p style={{ margin: 0, padding: 0 }}>hello</p>);
+      myElements.push(
+        <div>
+          <div
+            class="d-flex justify-content-between align-items-center p-3 hoverMe"
+            style={{ color: "#c74740", cursor: "pointer" }}
+            //onClick={() => this.props.changeNewCity(this.props.city)}
+            onClick={() => this.props.hideModal(this.props.city)}
+          >
+            {this.props.desc === "No Signal" ? (
+              <React.Fragment>
+                <FaPhoneSlash style={{ fontSize: "18px" }} />
+                <p style={{ margin: 0, fontWeight: "bold", fontSize: "16px" }}>
+                  System #
+                  {Math.random()
+                    .toString()
+                    .slice(-3)}
+                </p>
+                <p style={{ margin: 0, fontWeight: "bold", fontSize: "16px" }}>
+                  {this.props.city}
+                </p>
+              </React.Fragment>
+            ) : this.props.desc === "Low Battery" ? (
+              <React.Fragment>
+                <FaBatteryQuarter style={{ fontSize: "18px" }} />
+                <p style={{ margin: 0, fontWeight: "bold", fontSize: "16px" }}>
+                  System #
+                  {Math.random()
+                    .toString()
+                    .slice(-3)}
+                </p>
+                <p style={{ margin: 0, fontWeight: "bold", fontSize: "16px" }}>
+                  {this.props.city}
+                </p>
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                <FaTools style={{ fontSize: "18px" }} />
+                <p style={{ margin: 0, fontWeight: "bold", fontSize: "16px" }}>
+                  System #
+                  {Math.random()
+                    .toString()
+                    .slice(-3)}
+                </p>
+                <p style={{ margin: 0, fontWeight: "bold", fontSize: "16px" }}>
+                  {this.props.city}
+                </p>
+              </React.Fragment>
+            )}
+          </div>
+          <hr style={{ padding: 0, margin: 0 }} />
+        </div>
+      );
     }
     return (
       <div>

@@ -67,3 +67,8 @@ canvas {
 .ReactModal__Overlay--before-close {
   opacity: 0;
 }
+
+.hoverMe:hover {
+  background-color: #c74740 !important;
+  color: white !important;
+}
