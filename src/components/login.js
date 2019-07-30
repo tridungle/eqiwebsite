@@ -24,28 +24,23 @@ const defaultOptions2 = {
 };
 
 export default class Login extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      status: undefined,
-      loader: undefined
-    };
-  }
   render() {
-    if (this.state.loader === "first") {
+    if (this.props.loader === "first") {
       setTimeout(
         function() {
-          this.setState({ loader: "second" });
+          this.props.changeLoader("second");
         }.bind(this),
-        3000
+        //3000
+        1
       );
     }
-    if (this.state.loader === "second") {
+    if (this.props.loader === "second") {
       setTimeout(
         function() {
-          this.setState({ loader: undefined, status: "map" });
+          this.props.changeStatusAndLoader("map", undefined);
         }.bind(this),
-        860
+        //860
+        1
       );
     }
     return (
@@ -60,14 +55,14 @@ export default class Login extends Component {
             <canvas id="3D-background-three-canvas5" />
             <div class="logo">
               <FadeIn>
-                {!this.state.loader ? (
+                {!this.props.loader ? (
                   <div>
                     <img src={logo} alt="logo" />
                     <p class="mt-1">Early earthquake detection systems</p>
                   </div>
                 ) : null}
                 <div class="d-flex justify-content-center align-items-center text-center">
-                  {this.state.status === "loading" ? (
+                  {this.props.status === "loading" ? (
                     <div>
                       <FadeIn>
                         <div
@@ -83,7 +78,7 @@ export default class Login extends Component {
                           >
                             Loading Predicamentor
                           </h6>
-                          {this.state.loader === "first" ? (
+                          {this.props.loader === "first" ? (
                             <FadeIn>
                               <Lottie options={defaultOptions} width={70} />
                             </FadeIn>
@@ -112,10 +107,7 @@ export default class Login extends Component {
                         <br />
                         <div
                           onClick={() =>
-                            this.setState({
-                              status: "loading",
-                              loader: "first"
-                            })
+                            this.props.changeStatusAndLoader("loading", "first")
                           }
                           style={{
                             cursor: "pointer",

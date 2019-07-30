@@ -29,6 +29,18 @@ canvas {
   color: black !important;
 }
 
+.btn-outline-danger {
+  border: 1px solid #c74740 !important;
+  color: #c74740 !important;
+  font-weight: bold !important;
+  cursor: pointer;
+}
+
+.btn-outline-danger:hover {
+  background-color: #c74740 !important;
+  color: white !important;
+}
+
 .loginInput {
   width: 200px;
   background-color: black;
@@ -41,4 +53,17 @@ canvas {
   z-index: 10000;
   padding: 7px;
   background-color: #c74740;
+}
+
+.ReactModal__Overlay {
+  opacity: 0;
+  transition: opacity 500ms ease-in-out;
+}
+
+.ReactModal__Overlay--after-open {
+  opacity: 1;
+}
+
+.ReactModal__Overlay--before-close {
+  opacity: 0;
 }
