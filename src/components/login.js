@@ -30,8 +30,8 @@ export default class Login extends Component {
         function() {
           this.props.changeLoader("second");
         }.bind(this),
-        //3000
-        1
+        3000
+        //1
       );
     }
     if (this.props.loader === "second") {
@@ -39,8 +39,8 @@ export default class Login extends Component {
         function() {
           this.props.changeStatusAndLoader("map", undefined);
         }.bind(this),
-        //860
-        1
+        860
+        //1
       );
     }
     return (

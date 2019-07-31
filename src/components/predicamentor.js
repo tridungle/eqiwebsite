@@ -286,7 +286,15 @@ export default class Predicamentor extends Component {
   }
 
   selectedCity(city) {
-    this.setState({ selectedCity: city });
+    var myMarkersNew;
+    city === "תל אביב -יפו"
+      ? (myMarkersNew = myMarkersTelAviv)
+      : city === "ירושלים"
+      ? (myMarkersNew = myMarkersJerusalem)
+      : city === "חיפה"
+      ? (myMarkersNew = myMarkersHaifa)
+      : (myMarkersNew = []);
+    this.setState({ selectedCity: city, myMarkers: myMarkersNew });
   }
 
   closeModal() {
