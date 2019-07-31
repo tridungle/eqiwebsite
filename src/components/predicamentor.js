@@ -26,6 +26,18 @@ const defaultOptions = {
 
 Modal.defaultStyles.overlay.backgroundColor = "rgba(0,0,0,0.7)";
 
+function processPoints(geometry, callback, thisArg) {
+  if (geometry instanceof window.google.maps.LatLng) {
+    callback.call(thisArg, geometry);
+  } else if (geometry instanceof window.google.maps.Data.Point) {
+    callback.call(thisArg, geometry.get());
+  } else {
+    geometry.getArray().forEach(function(g) {
+      processPoints(g, callback, thisArg);
+    });
+  }
+}
+
 const customStyles = {
   content: {
     top: "50%",
@@ -81,18 +93,6 @@ const refreshDataFromGeoJson = function(
   let tempGeoJsonObj;
   try {
     tempGeoJsonObj = citiesJson;
-
-    function processPoints(geometry, callback, thisArg) {
-      if (geometry instanceof window.google.maps.LatLng) {
-        callback.call(thisArg, geometry);
-      } else if (geometry instanceof window.google.maps.Data.Point) {
-        callback.call(thisArg, geometry.get());
-      } else {
-        geometry.getArray().forEach(function(g) {
-          processPoints(g, callback, thisArg);
-        });
-      }
-    }
     // Call the addGeoJson from the Data class
     let newFeatures = newData.addGeoJson(tempGeoJsonObj);
     newData.setStyle({
@@ -162,28 +162,60 @@ const MyMapComponent = compose(
       });
     },
     componentWillReceiveProps(newProps) {
-      const refs = { GoogleMap };
-      this.setState({
-        onMapMounted: ref => {
-          refs.map = ref;
-          const currentMap = refs.map;
-          //window.googleMapsObject = currentMap.context[MAP];
-          console.log(currentMap);
+      //console.log(this.state.currentMap);
+      /*var bounds = new window.google.maps.LatLngBounds();
+      processPoints(event.feature.getGeometry(), bounds.extend, bounds);*/
+
+      //console.log(citiesJson;
+      let newData = new window.google.maps.Data();
+      let newFeatures = newData.addGeoJson(citiesJson);
+      /*for (var i = 0; i < newFeatures.length; i++) {
+        if (newFeatures[i].l.SETL_NAME === "חיפה") {
+          console.log(i);
         }
-      });
+      }*/
+      if (newProps.newCity === "Tel Aviv") {
+        var bounds = new window.google.maps.LatLngBounds();
+        processPoints(newFeatures[1590].getGeometry(), bounds.extend, bounds);
+        this.state.currentMap.fitBounds(bounds);
+      } else if (newProps.newCity === "Jerusalem") {
+        var bounds2 = new window.google.maps.LatLngBounds();
+        processPoints(newFeatures[1090].getGeometry(), bounds2.extend, bounds2);
+        this.state.currentMap.fitBounds(bounds2);
+      } else if (newProps.newCity === "Haifa") {
+        var bounds3 = new window.google.maps.LatLngBounds();
+        processPoints(newFeatures[1551].getGeometry(), bounds3.extend, bounds3);
+        this.state.currentMap.fitBounds(bounds3);
+      }
+      //1590 tel aviv 1090 jerusalem 1551 haifa
+
+      //console.log(newFeatures[0].getGeometry());
+      //processPoints(newFeatures[1590].getGeometry(), bounds.extend, bounds);
+
+      /*for (var i = 0; i < citiesJson.features.length; i++) {
+        console.log(citiesJson.features[i]);
+      }*/
+      //this.state.currentMap.fitBounds(bounds);
+
+      /*refreshDataFromGeoJson(
+        this.state.currentMap,
+        this.state.currentMap.props.hoveredCity,
+        this.state.currentMap.props.selectedCity,
+        this.state.currentMap.props.changeSelectedCityTitle
+      );*/
     }
   }),
   withStateHandlers(
     () => ({
       iconUrl: "http://maps.google.com/mapfiles/ms/icons/red.png",
-      iconSize: new window.google.maps.Size(16, 16),
-      anchor: new window.google.maps.Point(8, 8)
+      iconSize: new window.google.maps.Size(14, 14),
+      anchor: new window.google.maps.Point(7, 7)
     }),
     {
       onMarkerClick: () => () => ({
         iconUrl: "http://maps.google.com/mapfiles/ms/icons/blue.png",
-        iconSize: new window.google.maps.Size(16, 16),
-        anchor: new window.google.maps.Point(8, 8)
+        iconSize: new window.google.maps.Size(14, 14),
+        anchor: new window.google.maps.Point(7, 7)
       })
     }
   )
@@ -228,7 +260,8 @@ export default class Predicamentor extends Component {
       showModal: false,
       hoveredCity: undefined,
       selectedCity: undefined,
-      myMarkers: myMarkersTelAviv
+      myMarkers: myMarkersTelAviv,
+      newCity: undefined
     };
     this.openModal = this.openModal.bind(this);
     this.afterOpenModal = this.afterOpenModal.bind(this);
@@ -291,7 +324,8 @@ export default class Predicamentor extends Component {
     this.setState({
       modalIsOpen: false,
       isMarkerShown: true,
-      myMarkers: myMarkersNew
+      myMarkers: myMarkersNew,
+      newCity: city
     });
   }
 
@@ -305,7 +339,7 @@ export default class Predicamentor extends Component {
           hoveredCity={this.hoveredCity}
           selectedCity={this.selectedCity}
           changeSelectedCityTitle={this.changeSelectedCityTitle}
-          newCity={this.props.newCity}
+          newCity={this.state.newCity}
         />
         {!this.state.modalIsOpen ? (
           <div
